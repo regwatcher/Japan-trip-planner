@@ -1,0 +1,601 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: votes
+    description: Vote operations for built-in activities
+  - name: custom-activities
+    description: User-proposed activities
+  - name: comments
+    description: Comments on activities
+  - name: custom-activity-votes
+    description: Vote operations for custom activities
+  - name: activity-moves
+    description: Move activities to a different day
+  - name: reservations
+    description: Reservation requirements for activities
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /votes:
+    get:
+      operationId: getVotes
+      tags: [votes]
+      summary: Get all votes
+      responses:
+        "200":
+          description: List of all votes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Vote"
+
+  /votes/{voter}/{dayNumber}/{activityIndex}:
+    put:
+      operationId: castVote
+      tags: [votes]
+      summary: Cast or update a vote
+      parameters:
+        - name: voter
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: dayNumber
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: activityIndex
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VoteInput"
+      responses:
+        "200":
+          description: Vote cast
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vote"
+    delete:
+      operationId: deleteVote
+      tags: [votes]
+      summary: Remove a vote
+      parameters:
+        - name: voter
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: dayNumber
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: activityIndex
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Vote deleted
+
+  /custom-activities/{id}:
+    delete:
+      operationId: deleteCustomActivity
+      tags: [custom-activities]
+      summary: Delete a proposed activity and its votes/comments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Activity deleted
+
+  /custom-activities:
+    get:
+      operationId: getCustomActivities
+      tags: [custom-activities]
+      summary: Get all proposed activities
+      responses:
+        "200":
+          description: List of proposed activities
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CustomActivity"
+    post:
+      operationId: createCustomActivity
+      tags: [custom-activities]
+      summary: Propose a new activity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewCustomActivity"
+      responses:
+        "201":
+          description: Activity created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomActivity"
+
+  /comments/{id}:
+    delete:
+      operationId: deleteComment
+      tags: [comments]
+      summary: Delete a comment by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Comment deleted
+
+  /comments:
+    get:
+      operationId: getComments
+      tags: [comments]
+      summary: Get all comments
+      responses:
+        "200":
+          description: List of all comments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityComment"
+    post:
+      operationId: postComment
+      tags: [comments]
+      summary: Add a comment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewComment"
+      responses:
+        "201":
+          description: Comment created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActivityComment"
+
+  /custom-activity-votes:
+    get:
+      operationId: getCustomActivityVotes
+      tags: [custom-activity-votes]
+      summary: Get all custom activity votes
+      responses:
+        "200":
+          description: List of all custom activity votes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CustomActivityVote"
+
+  /custom-activity-votes/{voter}/{customActivityId}:
+    put:
+      operationId: castCustomActivityVote
+      tags: [custom-activity-votes]
+      summary: Cast or update a vote on a custom activity
+      parameters:
+        - name: voter
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: customActivityId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VoteInput"
+      responses:
+        "200":
+          description: Vote cast
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomActivityVote"
+    delete:
+      operationId: deleteCustomActivityVote
+      tags: [custom-activity-votes]
+      summary: Remove a vote on a custom activity
+      parameters:
+        - name: voter
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: customActivityId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Vote deleted
+
+  /activity-moves:
+    get:
+      operationId: getActivityMoves
+      tags: [activity-moves]
+      summary: Get all activity moves
+      responses:
+        "200":
+          description: List of all activity moves
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityMove"
+
+  /activity-moves/{dayNumber}/{activityIndex}:
+    put:
+      operationId: setActivityMove
+      tags: [activity-moves]
+      summary: Move an activity to another day
+      parameters:
+        - name: dayNumber
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: activityIndex
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ActivityMoveInput"
+      responses:
+        "200":
+          description: Move set
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActivityMove"
+    delete:
+      operationId: deleteActivityMove
+      tags: [activity-moves]
+      summary: Remove a move (restore activity to its original day)
+      parameters:
+        - name: dayNumber
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: activityIndex
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Move removed
+
+  /reservations:
+    get:
+      operationId: getReservations
+      tags: [reservations]
+      summary: Get all reservation requirements
+      responses:
+        "200":
+          description: List of all reservations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Reservation"
+
+  /reservations/{dayNumber}/{activityIndex}:
+    put:
+      operationId: setReservation
+      tags: [reservations]
+      summary: Set or update reservation requirement for an activity
+      parameters:
+        - name: dayNumber
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: activityIndex
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReservationInput"
+      responses:
+        "200":
+          description: Reservation set
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reservation"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    Vote:
+      type: object
+      properties:
+        id:
+          type: integer
+        voter:
+          type: string
+        dayNumber:
+          type: integer
+        activityIndex:
+          type: integer
+        voteType:
+          type: string
+          enum: [up, neutral, down]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - voter
+        - dayNumber
+        - activityIndex
+        - voteType
+        - createdAt
+        - updatedAt
+
+    VoteInput:
+      type: object
+      properties:
+        voteType:
+          type: string
+          enum: [up, neutral, down]
+      required:
+        - voteType
+
+    CustomActivity:
+      type: object
+      properties:
+        id:
+          type: integer
+        dayNumber:
+          type: integer
+        proposedBy:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        createdAt:
+          type: string
+      required:
+        - id
+        - dayNumber
+        - proposedBy
+        - name
+        - createdAt
+
+    NewCustomActivity:
+      type: object
+      properties:
+        dayNumber:
+          type: integer
+        proposedBy:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+      required:
+        - dayNumber
+        - proposedBy
+        - name
+
+    ActivityComment:
+      type: object
+      properties:
+        id:
+          type: integer
+        author:
+          type: string
+        dayNumber:
+          type: integer
+        activityIndex:
+          type: integer
+          nullable: true
+        customActivityId:
+          type: integer
+          nullable: true
+        content:
+          type: string
+        createdAt:
+          type: string
+      required:
+        - id
+        - author
+        - dayNumber
+        - content
+        - createdAt
+
+    NewComment:
+      type: object
+      properties:
+        author:
+          type: string
+        dayNumber:
+          type: integer
+        activityIndex:
+          type: integer
+        customActivityId:
+          type: integer
+        content:
+          type: string
+      required:
+        - author
+        - dayNumber
+        - content
+
+    CustomActivityVote:
+      type: object
+      properties:
+        id:
+          type: integer
+        voter:
+          type: string
+        customActivityId:
+          type: integer
+        voteType:
+          type: string
+          enum: [up, neutral, down]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - voter
+        - customActivityId
+        - voteType
+        - createdAt
+        - updatedAt
+
+    ActivityMove:
+      type: object
+      properties:
+        id:
+          type: integer
+        dayNumber:
+          type: integer
+        activityIndex:
+          type: integer
+        targetDayNumber:
+          type: integer
+        movedBy:
+          type: string
+        createdAt:
+          type: string
+      required:
+        - id
+        - dayNumber
+        - activityIndex
+        - targetDayNumber
+        - movedBy
+        - createdAt
+
+    ActivityMoveInput:
+      type: object
+      properties:
+        targetDayNumber:
+          type: integer
+        movedBy:
+          type: string
+      required:
+        - targetDayNumber
+        - movedBy
+
+    Reservation:
+      type: object
+      properties:
+        id:
+          type: integer
+        dayNumber:
+          type: integer
+        activityIndex:
+          type: integer
+        required:
+          type: boolean
+        deadline:
+          type: string
+          nullable: true
+        updatedBy:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - dayNumber
+        - activityIndex
+        - required
+        - updatedBy
+        - updatedAt
+
+    ReservationInput:
+      type: object
+      properties:
+        required:
+          type: boolean
+        deadline:
+          type: string
+          nullable: true
+        updatedBy:
+          type: string
+      required:
+        - required
+        - updatedBy
