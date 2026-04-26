@@ -62,3 +62,6 @@ coverage/
 
 # Regenerated in dev (mockup sandbox)
 artifacts/mockup-sandbox/src/.generated/
+
+# Private / personal assets (local only; never commit)
+attached_assets/
